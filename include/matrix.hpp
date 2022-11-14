@@ -6,6 +6,9 @@
 #include <stdexcept>
 #include <initializer_list>
 #include <iostream>
+#include <execution>
+
+#include <cstdlib>
 
 namespace tinyTools
 {
@@ -23,7 +26,16 @@ struct matrix
 
     // -----------------------------------------------------------------------------------------------------------------------------------------------------
     // Ctors.
-    inline constexpr explicit matrix() noexcept = default;
+    inline constexpr explicit matrix() noexcept
+    {
+        std::srand(static_cast<unsigned int>(std::time(nullptr))); // use current time as seed for random generator
+        for(auto& d : data_)
+        {
+            d = std::rand();
+        }
+    }
+
+
     inline constexpr matrix(std::initializer_list<value>&& list)
     {
         if(list.size() != totalSize_) { throw std::out_of_range("Data passed must have same size as matrix."); }
@@ -60,17 +72,43 @@ struct matrix
 
     inline constexpr auto operator+=(matrix const& rhm) noexcept -> matrix& { for(std::size_t i{}; i < totalSize_; ++i) { data_[i] += rhm.data_[i]; } return *this; }
     friend constexpr auto operator+(matrix lhm, matrix const& rhm) noexcept -> matrix { lhm += rhm; return lhm; }
-    inline constexpr auto operator+=(T const& scalar) noexcept -> matrix&   { for(std::size_t i{}; i < totalSize_; ++i) { data_[i] += scalar; } return *this; }
+    inline constexpr auto operator+=(T const& scalar) noexcept -> matrix&   { for(auto& d : data_) { d += scalar; } return *this; }
     friend constexpr auto operator+(matrix lhm, T const& scalar) noexcept -> matrix { lhm += scalar; return lhm; }
 
     inline constexpr auto operator-=(matrix const& rhm) noexcept -> matrix& { for(std::size_t i{}; i < totalSize_; ++i) { data_[i] -= rhm.data_[i]; } return *this; }
     friend constexpr auto operator-(matrix lhm, matrix const& rhm) noexcept -> matrix { lhm -= rhm; return lhm; }
-    inline constexpr auto operator-=(T const& scalar) noexcept -> matrix&   { for(std::size_t i{}; i < totalSize_; ++i) { data_[i] -= scalar; } return *this; }
+    inline constexpr auto operator-=(T const& scalar) noexcept -> matrix&   { for(auto& d : data_) { d -= scalar; } return *this; }
     friend constexpr auto operator-(matrix lhm, T const& scalar) noexcept -> matrix { lhm -= scalar; return lhm; }
 
 
     // -----------------------------------------------------------------------------------------------------------------------------------------------------
     // Methods.
+    inline constexpr void sum_scalar(T const& scalar) noexcept
+    {
+        for(auto& d : data_) { d += scalar; }
+    }
+
+    inline constexpr void sum_scalar_par(T const& scalar) noexcept
+    {
+        std::for_each(std::execution::unseq, data_.begin(), data_.end(), [&scalar](T& n) { n += scalar; });
+    }
+
+    inline constexpr auto op_peq(T const& scalar) noexcept -> matrix&
+    {
+        for(auto& d : data_) { d += scalar; }
+        return *this;
+    }
+  
+    inline constexpr auto op_peq_par(T const& scalar) noexcept -> matrix&
+    {
+        std::for_each(std::execution::par_unseq, data_.begin(), data_.end(),
+        [&](T& d)
+        {
+            d += scalar;
+        });
+
+        return *this;
+    }
 
 private:
     static constexpr std::size_t totalSize_ { ROWS * COLS };
@@ -81,15 +119,15 @@ private:
     template<typename This>
     static inline constexpr auto op_parenthesis(This &instance, std::size_t r, std::size_t c) -> auto&
     {
-        if(r > ROWS) { throw std::out_of_range( std::string{ "Rows out of range, max rows= " + std::to_string(ROWS) + '\n' } ); }
-        if(c > COLS) { throw std::out_of_range( std::string{ "Cols out of range, max cols= " + std::to_string(COLS) + '\n' } ); }
+        if(r >= ROWS) { throw std::out_of_range( std::string{ "Rows out of range, max rows= " + std::to_string(ROWS) + '\n' } ); }
+        if(c >= COLS) { throw std::out_of_range( std::string{ "Cols out of range, max cols= " + std::to_string(COLS) + '\n' } ); }
         return instance.data_[r * COLS + c];
     }
 
     template<typename This>
     static inline constexpr auto op_sqBracket(This &instance, std::size_t idx) -> auto&
     {
-        if(idx > totalSize_) { throw std::out_of_range( std::string{ "Index out of range, max= " + std::to_string(totalSize_) + '\n' } ); }
+        if(idx >= totalSize_) { throw std::out_of_range( std::string{ "Index out of range, max= " + std::to_string(totalSize_) + '\n' } ); }
         return instance.data_[idx];
     }
 };
@@ -102,16 +140,10 @@ std::ostream& operator<<(std::ostream& os, matrix<L_T, L_ROWS, L_COLS> const& rh
     {
         os << d;
         if( ++i == L_COLS ) { os << '\n'; i = 0; }
-        else              { os << ' '; }
+        else                { os << ' '; }
     }
     return os;
 }
-
-/*
-0 1 2
-3 4 5
-*/
-
 } // namespace tinyTools
 
 #endif /* MATRIX_HPP */
