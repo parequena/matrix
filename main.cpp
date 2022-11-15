@@ -16,36 +16,5 @@ void benchmark(func_t func)
 
 auto main() -> int
 {
-    static constexpr std::size_t rows { 1664 };
-    static constexpr std::size_t cols { 936 };
-    static constexpr std::size_t size { rows * cols * 2 };
-
-    std::array<int, size> array{};
-
-    // tinyTools::matrix<int, rows, cols> matA {};
-    // tinyTools::matrix<int, rows, cols> matB {};
-
-    /*benchmark( [&]()
-    {
-        matA.sum_scalar(1);
-    } );
-
-    benchmark( [&]()
-    {
-        matB.sum_scalar_par(1);
-    } );
-
-    std::cout << "--------------------------\n";
-    benchmark( [&]()
-    {
-        matA.op_peq(1);
-    } );
-
-    benchmark( [&]()
-    {
-        matB.op_peq_par(1);
-    } );
-
-*/
-    return array[0];
+    return 0;
 }

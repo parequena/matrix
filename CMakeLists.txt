@@ -26,4 +26,7 @@ add_executable(unit-test ${GTEST_SRC_FILES})
 target_link_libraries(unit-test gtest gtest_main)
 add_test(UnitTest unit-test)
 
+####################################################################
+## Main
+####################################################################
 add_executable(main main.cpp)

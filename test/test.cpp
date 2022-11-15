@@ -16,40 +16,105 @@ protected:
         mat_A(1, 2) = 5;
     }
 
-    tinyTools::matrix<int, 2, 3> mat_A{};
-
-    template <typename T>
-    void compareArrays(T const& lha, T const& rha)
-    {
-        std::size_t const ls = lha.size();
-        std::size_t const rs = rha.size();
-
-        EXPECT_EQ(ls, rs);
-        for(std::size_t i{}; i < ls; ++i)
-        {
-            EXPECT_EQ(lha[i], rha[i]);
-        }
-    }
+    tinyTools::matrix<int> mat_A{2, 3, 0};
 };
 
 
-TEST_F(TestMatrix, DumpyTest)
+// -----------------------------------------------------------------------------------------------------------------------------------------------------
+// Ctors.
+TEST_F(TestMatrix, Ctor_Reserve_Mem)
 {
-    tinyTools::matrix<int, 2, 3> mat{};
-    mat(0, 0) = 3;
-    [[maybe_unused]] auto const& array = mat.getData();
+    tinyTools::matrix<int> mat { 2, 3 };
+    EXPECT_EQ(mat.totalSize(), 6);    
 }
 
-TEST_F(TestMatrix, Test_InitList_Ctor)
+TEST_F(TestMatrix, Ctor_Init_Val)
 {
-    tinyTools::matrix<int, 2, 3> mat_B { 0, 1, 2, 3, 4, 5 };
-    EXPECT_TRUE(mat_A == mat_B);
+    tinyTools::matrix<int> mat { 2, 3, 7 };
+    EXPECT_EQ(mat(0,0), 7);    
 }
 
-TEST_F(TestMatrix, Test_Array_Ctor)
+TEST_F(TestMatrix, Ctor_Init_Data)
 {
-    constexpr std::size_t cols { 2 };
-    constexpr std::size_t rows { 3 };
-    std::array<int, rows * cols> data{ 0, 1, 2, 3, 4, 5 };
-    tinyTools::matrix<int, rows, cols> mat{ std::move(data) };
+    std::vector<int> data { 1, 2, 3, 4, 5, 6 };
+    tinyTools::matrix<int> mat { 2, 3 , data };
+    EXPECT_EQ(mat(0, 0), 1);
+    EXPECT_EQ(mat(0, 1), 2);
+    EXPECT_EQ(mat(0, 2), 3);
+    EXPECT_EQ(mat(1, 0), 4);
+    EXPECT_EQ(mat(1, 1), 5);
+    EXPECT_EQ(mat(1, 2), 6);
+}
+
+TEST_F(TestMatrix, Ctor_Init_Move_Data)
+{
+    std::vector<int> data { 1, 2, 3, 4, 5, 6 };
+    tinyTools::matrix<int> mat { 2, 3 , std::move(data) };
+    EXPECT_EQ(mat(0, 0), 1);
+    EXPECT_EQ(mat(0, 1), 2);
+    EXPECT_EQ(mat(0, 2), 3);
+    EXPECT_EQ(mat(1, 0), 4);
+    EXPECT_EQ(mat(1, 1), 5);
+    EXPECT_EQ(mat(1, 2), 6);
+}
+
+TEST_F(TestMatrix, Ctor_Init_List)
+{
+    tinyTools::matrix<int> mat { 2, 3 , { 1, 2, 3, 4, 5, 6 } };
+    EXPECT_EQ(mat(0, 0), 1);
+    EXPECT_EQ(mat(0, 1), 2);
+    EXPECT_EQ(mat(0, 2), 3);
+    EXPECT_EQ(mat(1, 0), 4);
+    EXPECT_EQ(mat(1, 1), 5);
+    EXPECT_EQ(mat(1, 2), 6);
+}
+
+TEST_F(TestMatrix, Ctor_Copy)
+{
+    tinyTools::matrix<int> mat { 2, 3 , { 1, 2, 3, 4, 5, 6 } };
+    auto matCopy { mat };
+    EXPECT_EQ(matCopy(0, 0), 1);
+    EXPECT_EQ(matCopy(0, 1), 2);
+    EXPECT_EQ(matCopy(0, 2), 3);
+    EXPECT_EQ(matCopy(1, 0), 4);
+    EXPECT_EQ(matCopy(1, 1), 5);
+    EXPECT_EQ(matCopy(1, 2), 6); 
+}
+
+TEST_F(TestMatrix, Ctor_Move)
+{
+    tinyTools::matrix<int> mat { 2, 3 , { 1, 2, 3, 4, 5, 6 } };
+    auto matCopy { std::move(mat) };
+    EXPECT_EQ(matCopy(0, 0), 1);
+    EXPECT_EQ(matCopy(0, 1), 2);
+    EXPECT_EQ(matCopy(0, 2), 3);
+    EXPECT_EQ(matCopy(1, 0), 4);
+    EXPECT_EQ(matCopy(1, 1), 5);
+    EXPECT_EQ(matCopy(1, 2), 6); 
+}
+
+TEST_F(TestMatrix, Ctor_Op)
+{
+    tinyTools::matrix<int> mat { 2, 3 , { 1, 2, 3, 4, 5, 6 } };
+    tinyTools::matrix<int> matCopy{2, 3, 0};
+    matCopy = mat;
+    EXPECT_EQ(matCopy(0, 0), 1);
+    EXPECT_EQ(matCopy(0, 1), 2);
+    EXPECT_EQ(matCopy(0, 2), 3);
+    EXPECT_EQ(matCopy(1, 0), 4);
+    EXPECT_EQ(matCopy(1, 1), 5);
+    EXPECT_EQ(matCopy(1, 2), 6); 
+}
+
+TEST_F(TestMatrix, Ctor_Op_Move)
+{
+    tinyTools::matrix<int> mat { 2, 3 , { 1, 2, 3, 4, 5, 6 } };
+    tinyTools::matrix<int> matCopy{2, 3, 0};
+    matCopy = std::move(mat);
+    EXPECT_EQ(matCopy(0, 0), 1);
+    EXPECT_EQ(matCopy(0, 1), 2);
+    EXPECT_EQ(matCopy(0, 2), 3);
+    EXPECT_EQ(matCopy(1, 0), 4);
+    EXPECT_EQ(matCopy(1, 1), 5);
+    EXPECT_EQ(matCopy(1, 2), 6); 
 }
