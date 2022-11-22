@@ -8,8 +8,6 @@
 #include <iostream>
 #include <execution>
 
-#include <cstdlib>
-
 namespace tinyTools
 {
 template <typename T>
@@ -27,11 +25,13 @@ struct matrix
 
     // -----------------------------------------------------------------------------------------------------------------------------------------------------
     // Ctors.
-    inline explicit constexpr matrix(size_type const rows, size_type const cols) noexcept 
+    inline explicit constexpr matrix(size_type const rows, size_type const cols) 
         : rows_{ rows }
         , cols_{ cols }
         , totalSize_{ rows_ * cols_ }
     {
+        if(rows_ == 0) { throw std::length_error("Rows can not be 0!\n"); }
+        if(cols_ == 0) { throw std::length_error("Cols can not be 0!\n"); }
         data_.reserve(totalSize_);
     }
 
@@ -40,6 +40,8 @@ struct matrix
         , cols_{ cols }
         , totalSize_{ rows_ * cols_ }
     {
+                             if(rows_ == 0) { throw std::length_error("Rows can not be 0!\n"); }
+        if(cols_ == 0) { throw std::length_error("Cols can not be 0!\n"); }
         data_.reserve(totalSize_);
         for (size_type i{}; i < totalSize_; ++i) { data_.emplace_back(initialValue); }
     }
@@ -49,7 +51,10 @@ struct matrix
         , cols_{ cols }
         , totalSize_{ rows_ * cols_ }
         , data_{ data }
-    { }
+    {
+        if(rows_ == 0) { throw std::length_error("Rows can not be 0!\n"); }
+        if(cols_ == 0) { throw std::length_error("Cols can not be 0!\n"); }
+    }
 
     inline constexpr matrix(size_type const rows, size_type const cols, std::initializer_list<value>&& data)
         : matrix(rows, cols, container_type{data})
@@ -61,7 +66,7 @@ struct matrix
         std::swap(data_, data);
     }
 
-    inline explicit constexpr matrix(matrix const& rhm)
+    inline constexpr matrix(matrix const& rhm)
         : matrix( rhm.rows_, rhm.cols_, rhm.data_ )
     { }
 
@@ -89,7 +94,6 @@ struct matrix
     inline constexpr size_type rows() const noexcept { return rows_; }
     inline constexpr size_type cols() const noexcept { return cols_; }
     inline constexpr size_type totalSize() const noexcept { return totalSize_; }
-    inline constexpr bool sameSize(matrix const& rhm) const noexcept { return (rows_ == rhm.rows_ && cols_ == rhm.cols_ && totalSize_ == rhm.totalSize_)    ; }
 
     // -----------------------------------------------------------------------------------------------------------------------------------------------------
     // Operators.
@@ -107,33 +111,33 @@ struct matrix
     inline auto operator<(matrix const& rhm) const -> matrix<bool>
     {
         if(!sameSize(rhm)) { throw std::invalid_argument("Matrixes are not the same size!\n"); }
-        matrix<bool> ret{rows_, cols_, 0};
-        for (size_type i{}; i < totalSize_; ++i) { ret[i] = generic_operator(data_[i], rhm.data_[i], operator<()); }
-        return ret;
+        std::vector<bool> data{}; data.reserve(totalSize_);
+        for(size_type i{}; i < totalSize_; ++i) { data.emplace_back(data_[i] < rhm.data_[i]); }
+        return matrix<bool>{rows_, cols_, std::move(data) };
     }
     
     inline auto operator<=(matrix const& rhm) const -> matrix<bool>
     {
         if(!sameSize(rhm)) { throw std::invalid_argument("Matrixes are not the same size!\n"); }
-        matrix<bool> ret{rows_, cols_, 0};
-        for (size_type i{}; i < totalSize_; ++i) { ret[i] = generic_operator(data_[i], rhm.data_[i], operator<=()); }
-        return ret;
+        std::vector<bool> data{}; data.reserve(totalSize_);
+        for(size_type i{}; i < totalSize_; ++i) { data.emplace_back(data_[i] <= rhm.data_[i]); }
+        return matrix<bool>{rows_, cols_, std::move(data) };
     }
 
     inline auto operator>(matrix const& rhm) const -> matrix<bool>
     {
         if(!sameSize(rhm)) { throw std::invalid_argument("Matrixes are not the same size!\n"); }
-        matrix<bool> ret{rows_, cols_, 0};
-        for (size_type i{}; i < totalSize_; ++i) { ret[i] = generic_operator(data_[i], rhm.data_[i], operator>()); }
-        return ret;
+        std::vector<bool> data{}; data.reserve(totalSize_);
+        for(size_type i{}; i < totalSize_; ++i) { data.emplace_back(data_[i] > rhm.data_[i]); }
+        return matrix<bool>{rows_, cols_, std::move(data) };
     }
 
     inline auto operator>=(matrix const& rhm) const -> matrix<bool>
     {
         if(!sameSize(rhm)) { throw std::invalid_argument("Matrixes are not the same size!\n"); }
-        matrix<bool> ret{rows_, cols_, 0};
-        for (size_type i{}; i < totalSize_; ++i) { ret[i] = generic_operator(data_[i], rhm.data_[i], operator>=()); }
-        return ret;
+        std::vector<bool> data{}; data.reserve(totalSize_);
+        for(size_type i{}; i < totalSize_; ++i) { data.emplace_back(data_[i] >= rhm.data_[i]); }
+        return matrix<bool>{rows_, cols_, std::move(data) };
     }
 
     inline constexpr auto operator+=(matrix const& rhm) noexcept -> matrix& { for(size_type i{}; i < totalSize_; ++i) { data_[i] += rhm.data_[i]; } return *this; }
@@ -146,10 +150,53 @@ struct matrix
     inline constexpr auto operator-=(T const& scalar) noexcept -> matrix&   { for(auto& d : data_) { d -= scalar; } return *this; }
     friend constexpr auto operator-(matrix lhm, T const& scalar) noexcept -> matrix { lhm -= scalar; return lhm; }
 
+    inline constexpr auto operator*(matrix const& rhm) const -> matrix
+    {
+        if(cols_ != rhm.rows_) { throw std::invalid_argument("Matrixes left-matrix cols must be same size as right-matrix rows.\n"); }
+        matrix ret{ rows_, rhm.cols_, 0 };
+
+        for(size_type r{}; r < rows_; ++r)
+        {
+            for(size_type c{}; c < rhm.cols_; ++c)
+            {
+                for(size_t i{}; i < rows_; ++i)
+                {
+                    ret(r, c) += getRow(r)[i] * rhm.getCol(c)[i];
+                }
+            }
+        }
+
+        return ret;
+    }
 
     // -----------------------------------------------------------------------------------------------------------------------------------------------------
     // Methods.
     static auto invalid() noexcept -> matrix { return matrix{}; }
+    inline constexpr bool sameSize(matrix const& rhm) const noexcept { return (rows_ == rhm.rows_ && cols_ == rhm.cols_ && totalSize_ == rhm.totalSize_); }
+    inline constexpr auto getRow(size_type const row) const -> matrix
+    {
+        if(row >= rows_) { throw std::out_of_range( std::string{ "Rows out of range, max rows= " + std::to_string(rows_) + '\n' } ); }
+
+        matrix ret{1, cols_, 0};
+        for(size_type i{}; i < cols_; ++i) { ret[i] = op_parenthesis(*this, row, i); }
+        return ret;
+    }
+
+    inline constexpr auto getCol(size_type const col) const -> matrix
+    {
+        if(col >= cols_) { throw std::out_of_range( std::string{ "Cols out of range, max cols= " + std::to_string(cols_) + '\n' } ); }
+
+        matrix ret{rows_, 1, 0};
+        for(size_type i{}; i < rows_; ++i) { ret[i] = op_parenthesis(*this, i, col); }
+        return ret;
+    }
+
+    inline constexpr auto identity(size_t const size) const noexcept
+    {
+        matrix ret{ size, size, 0};
+        for(size_type i{}; i < size; ++i) { ret(i, i) = 1; }
+        return ret;
+    }
 
 private:
     inline explicit constexpr matrix() noexcept = default;
@@ -175,11 +222,6 @@ private:
         if(idx >= instance.totalSize_) { throw std::out_of_range( std::string{ "Index out of range, max= " + std::to_string(instance.totalSize_) + '\n' } ); }
         return instance.data_[idx];
     }
-
-    // -----------------------------------------------------------------------------------------------------------------------------------------------------
-    // Generic operator to use all other operators.
-    template <class func_t>
-    inline constexpr bool generic_operator(T const& lhd, T const& rhd, [[maybe_unused]] func_t func) const noexcept { return lhd.func(rhd); }
 };
 
 template <numerical L_T>
