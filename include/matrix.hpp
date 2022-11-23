@@ -2,11 +2,11 @@
 #define MATRIX_HPP
 
 #include <concepts>
-#include <vector>
-#include <stdexcept>
+#include <execution>
 #include <initializer_list>
 #include <iostream>
-#include <execution>
+#include <stdexcept>
+#include <vector>
 
 namespace tinyTools
 {
@@ -40,7 +40,7 @@ struct matrix
         , cols_{ cols }
         , totalSize_{ rows_ * cols_ }
     {
-                             if(rows_ == 0) { throw std::length_error("Rows can not be 0!\n"); }
+        if(rows_ == 0) { throw std::length_error("Rows can not be 0!\n"); }
         if(cols_ == 0) { throw std::length_error("Cols can not be 0!\n"); }
         data_.reserve(totalSize_);
         for (size_type i{}; i < totalSize_; ++i) { data_.emplace_back(initialValue); }
@@ -70,7 +70,7 @@ struct matrix
         : matrix( rhm.rows_, rhm.cols_, rhm.data_ )
     { }
 
-    inline constexpr matrix(matrix&& rhm)
+    inline constexpr matrix(matrix&& rhm) noexcept
     {
         std::swap(rows_, rhm.rows_);
         std::swap(cols_, rhm.cols_);
@@ -90,15 +90,15 @@ struct matrix
 
     // -----------------------------------------------------------------------------------------------------------------------------------------------------
     // Getters.
-    inline auto getData() const noexcept -> container_type { return data_; }
-    inline constexpr size_type rows() const noexcept { return rows_; }
-    inline constexpr size_type cols() const noexcept { return cols_; }
-    inline constexpr size_type totalSize() const noexcept { return totalSize_; }
+    [[nodiscard]] inline auto getData() const noexcept -> container_type { return data_; }
+    [[nodiscard]] inline constexpr auto rows() const noexcept -> size_type { return rows_; }
+    [[nodiscard]] inline constexpr auto cols() const noexcept -> size_type { return cols_; }
+    [[nodiscard]] inline constexpr auto totalSize() const noexcept -> size_type { return totalSize_; }
 
     // -----------------------------------------------------------------------------------------------------------------------------------------------------
     // Operators.
     template <numerical L_T>
-    friend std::ostream& operator<<(std::ostream& os, matrix<L_T> const& rhm);
+    friend auto operator<<(std::ostream& os, matrix<L_T> const& rhm) -> std::ostream&;
     inline constexpr auto operator()(size_type r, size_type c) const -> const_reference { return op_parenthesis(*this, r, c); }
     inline constexpr auto operator()(size_type r, size_type c)       -> reference       { return op_parenthesis(*this, r, c); }
 
@@ -171,9 +171,9 @@ struct matrix
 
     // -----------------------------------------------------------------------------------------------------------------------------------------------------
     // Methods.
-    static auto invalid() noexcept -> matrix { return matrix{}; }
-    inline constexpr bool sameSize(matrix const& rhm) const noexcept { return (rows_ == rhm.rows_ && cols_ == rhm.cols_ && totalSize_ == rhm.totalSize_); }
-    inline constexpr auto getRow(size_type const row) const -> matrix
+    inline static constexpr auto invalid() noexcept -> matrix { return matrix{}; }
+    [[nodiscard]] inline constexpr auto sameSize(matrix const& rhm) const noexcept -> bool { return (rows_ == rhm.rows_ && cols_ == rhm.cols_ && totalSize_ == rhm.totalSize_); }
+    [[nodiscard]] inline constexpr auto getRow(size_type const row) const -> matrix
     {
         if(row >= rows_) { throw std::out_of_range( std::string{ "Rows out of range, max rows= " + std::to_string(rows_) + '\n' } ); }
 
@@ -182,7 +182,7 @@ struct matrix
         return ret;
     }
 
-    inline constexpr auto getCol(size_type const col) const -> matrix
+    [[nodiscard]] inline constexpr auto getCol(size_type const col) const -> matrix
     {
         if(col >= cols_) { throw std::out_of_range( std::string{ "Cols out of range, max cols= " + std::to_string(cols_) + '\n' } ); }
 
@@ -191,10 +191,30 @@ struct matrix
         return ret;
     }
 
-    inline constexpr auto identity(size_t const size) const noexcept
+    inline static constexpr auto identity(size_type const size) noexcept
     {
-        matrix ret{ size, size, 0};
+        matrix ret{ size, size, 0 };
         for(size_type i{}; i < size; ++i) { ret(i, i) = 1; }
+        return ret;
+    }
+
+    inline static constexpr auto ones(size_type size) noexcept -> matrix { return ones(size, size); }
+    inline static constexpr auto ones(size_type rows, size_type cols) noexcept -> matrix { return matrix{rows, cols, 1}; }
+    inline static constexpr auto zeros(size_type size) noexcept -> matrix { return zeros(size, size); }
+    inline static constexpr auto zeros(size_type rows, size_type cols) noexcept -> matrix { return matrix{rows, cols, 0}; }
+    inline static constexpr auto random(size_type size) noexcept -> matrix { return random(size, size); }
+    inline static constexpr auto random(size_type rows, size_type cols) noexcept -> matrix
+    {
+        matrix ret{ rows, cols, 1 };
+        auto const totalSize = rows * cols;
+        for(size_type i{}; i < totalSize; ++i) { ret[i] = std::rand(); }
+        return ret;
+    }
+    inline static constexpr auto random(size_type rows, size_type cols, T max) noexcept -> matrix
+    {
+        matrix ret{ rows, cols, 1 };
+        auto const totalSize = rows * cols;
+        for(size_type i{}; i < totalSize; ++i) { ret[i] = std::rand() % max; }
         return ret;
     }
 
@@ -225,7 +245,7 @@ private:
 };
 
 template <numerical L_T>
-std::ostream& operator<<(std::ostream& os, matrix<L_T> const& rhm)
+auto operator<<(std::ostream& os, matrix<L_T> const& rhm) -> std::ostream&
 {
     typename matrix<L_T>::size_type i { 0 };
     for(auto const d : rhm.data_)
