@@ -4,19 +4,19 @@
 
 class TestMatrix : public ::testing::Test
 {
-protected:
-    void SetUp() override
-    {
-        mat_A(0, 0) = 0;
-        mat_A(0, 1) = 1;
-        mat_A(0, 2) = 2;
+ protected:
+  void SetUp() override
+  {
+    mat_A(0, 0) = 0;
+    mat_A(0, 1) = 1;
+    mat_A(0, 2) = 2;
 
-        mat_A(1, 0) = 3;
-        mat_A(1, 1) = 4;
-        mat_A(1, 2) = 5;
-    }
+    mat_A(1, 0) = 3;
+    mat_A(1, 1) = 4;
+    mat_A(1, 2) = 5;
+  }
 
-    tinyTools::matrix<int> mat_A{2, 3, 0};
+  tinyTools::matrix<int> mat_A{2, 3, 0};
 };
 
 
