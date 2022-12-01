@@ -8,6 +8,12 @@
 #include <stdexcept>
 #include <vector>
 
+/* Nuestra:         Matlab:
+       0 1 2          0 3 6
+       3 4 5          1 4 7
+       6 7 8          2 5 8
+*/
+
 namespace tinyTools
 {
 template <typename T>
@@ -26,6 +32,8 @@ struct matrix
     enum struct Direction : std::uint8_t
     {
         NONE,
+        COLUMNS,
+        ROWS
     };
 
     // -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -88,6 +96,11 @@ struct matrix
         return *this;
     }
 
+    constexpr ~matrix() noexcept
+    {
+        data_.clear();
+    }
+
     // -----------------------------------------------------------------------------------------------------------------------------------------------------
     // Getters.
     [[nodiscard]] inline auto getData() const noexcept -> container_type { return data_; }
@@ -101,6 +114,37 @@ struct matrix
     friend auto operator<<(std::ostream& os, matrix<L_T> const& rhm) -> std::ostream&;
     inline constexpr auto operator()(size_type r, size_type c) const -> const_reference { return op_parenthesis(*this, r, c); }
     inline constexpr auto operator()(size_type r, size_type c) -> reference { return op_parenthesis(*this, r, c); }
+
+    inline constexpr auto operator()(size_type row, size_type col, size_type height, size_type width) const -> matrix
+    {
+        if(row >= rows_) { throw std::out_of_range(std::string{ "Rows out of range, max rows= " + std::to_string(rows_) + '\n' }); }
+        if(col >= cols_) { throw std::out_of_range(std::string{ "Cols out of range, max cols= " + std::to_string(cols_) + '\n' }); }
+
+        auto const lastRow = row + height;
+        auto const lastCol = col + width;
+
+        if(lastRow > rows_) { throw std::out_of_range("[HEIGHT] Max size out of bounds!\n"); }
+        if(lastCol > cols_) { throw std::out_of_range(" [WIDHT] Max size out of bounds!\n"); }
+
+        matrix ret{ height, width, 0 };
+
+        size_type i{}; // rows;
+        for(size_type r{row}; r < lastRow; ++r)
+        {
+            size_type j {0}; // Cols.
+            for(size_type c{col}; c < lastCol; ++c)
+            {
+                ret(i, j) = op_parenthesis(*this, r, c);
+                ++j;
+            }
+            ++i;
+        }
+
+        return ret;
+    }
+
+    // Following matlab submatrix style: "(1:end, 1:3)"
+    // inline constexpr auto operator()(std::string_view str) const -> matrix {}
 
     inline auto operator[](size_type idx) const -> const_reference { return op_sqBracket(*this, idx); }
     inline auto operator[](size_type idx) -> reference { return op_sqBracket(*this, idx); }
@@ -238,6 +282,36 @@ struct matrix
         return ret;
     }
 
+    [[nodiscard]] inline constexpr auto sum(Direction dir) const -> matrix
+    {
+        if(dir == Direction::NONE) { throw std::invalid_argument("Direction must be Columns (1) or Rows (2).\n"); }
+
+        if(dir == Direction::COLUMNS)
+        {
+            matrix ret{1, cols_, 0};
+            for(size_type c{}; c < cols_; ++c)
+            {
+                auto const& column = getCol(c).getData();
+                for(auto const d : column) { ret(0, c) += d; }
+            }
+            return ret;
+        }
+
+        // Direction::ROWS.
+        matrix ret{rows_, 1, 0};
+        for(size_type r{}; r < rows_; ++r)
+        {
+            auto const& row = getRow(r).getData();
+            for(auto const d : row) { ret(r, 0) += d; }
+        }
+        return ret;
+    }
+
+    inline static constexpr auto sum(Direction dir, matrix const& rhm) -> matrix
+    {
+        
+    }
+
 private:
     inline explicit constexpr matrix() noexcept = default;
 
@@ -265,8 +339,7 @@ private:
 };
 
 template <numerical L_T>
-auto
-operator<<(std::ostream& os, matrix<L_T> const& rhm) -> std::ostream&
+auto operator<<(std::ostream& os, matrix<L_T> const& rhm) -> std::ostream&
 {
     typename matrix<L_T>::size_type i{ 0 };
     for(auto const d : rhm.data_) {

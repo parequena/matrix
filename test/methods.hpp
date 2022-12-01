@@ -105,4 +105,15 @@ TEST_F(TestMatrix, Method_multiply)
   compare2Matrixes(matC, resolve);
 }
 
+TEST_F(TestMatrix, Method_sum)
+{
+  auto const matA = tinyTools::matrix<int>{2, 2, {1, 2, 3, 4}};
+
+  auto const sumC = matA.sum( tinyTools::matrix<int>::Direction::COLUMNS );
+  compareMatrix(sumC, {4, 6});
+
+  auto const sumR = matA.sum( tinyTools::matrix<int>::Direction::ROWS );
+  compareMatrix(sumR, {3, 7});
+}
+
 #endif /* METHODS_TEST_HPP */
