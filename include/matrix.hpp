@@ -292,7 +292,7 @@ struct matrix
             for(size_type c{}; c < cols_; ++c)
             {
                 auto const& column = getCol(c).getData();
-                for(auto const d : column) { ret(0, c) += d; }
+                ret(0, c) = std::accumulate(column.begin(), column.end(), 0);
             }
             return ret;
         }
@@ -302,14 +302,9 @@ struct matrix
         for(size_type r{}; r < rows_; ++r)
         {
             auto const& row = getRow(r).getData();
-            for(auto const d : row) { ret(r, 0) += d; }
+            ret(r, 0) = std::accumulate(row.begin(), row.end(), 0);
         }
         return ret;
-    }
-
-    inline static constexpr auto sum(Direction dir, matrix const& rhm) -> matrix
-    {
-        
     }
 
 private:

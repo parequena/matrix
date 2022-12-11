@@ -3,12 +3,13 @@
 #include <thread>
 #include "include/matrix.hpp"
 
-static constexpr auto df_nTimes{1'000};
+static constexpr auto df_nTimes{1'0};
 
-template <typename func_t> void benchmark(func_t func)
+template <typename func_t>
+void benchmark(func_t func)
 {
   auto start = std::chrono::steady_clock::now();
-  for(auto i{0}; i < df_nTimes; ++i)
+  for (auto i{0}; i < df_nTimes; ++i)
   {
     func();
   }
@@ -18,13 +19,14 @@ template <typename func_t> void benchmark(func_t func)
 
 auto main() -> int
 {
-  // tinyTools::matrix<int> matA = tinyTools::matrix<int>::random(3, 3, 5);
-  // tinyTools::matrix<int> matB = tinyTools::matrix<int>::random(3, 3, 6);
+  auto const A = tinyTools::matrix<int>::random(1000);
+  auto const B = tinyTools::matrix<int>::random(1000);
 
-  auto const matA = tinyTools::matrix<int>{3, 2, {3, 4, 7, 2, 5, 9}};
-  auto const matB = tinyTools::matrix<int>{2, 3, {3, 1, 5, 6, 9, 7}};
-
-  auto C = matA * matB;
+  benchmark(
+      [&]() {
+        auto const sumA_c = A.sum(tinyTools::matrix<int>::Direction::COLUMNS);
+        auto const sumA_r = A.sum(tinyTools::matrix<int>::Direction::ROWS);
+      });
 
   return 0;
 }
