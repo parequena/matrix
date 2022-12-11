@@ -24,22 +24,6 @@ On this code I have been using some tecnologies just for fun:
 ### Interface
 
 ``` cpp
-#ifndef MATRIX_HPP
-#define MATRIX_HPP
-
-#include <concepts>
-#include <execution>
-#include <initializer_list>
-#include <iostream>
-#include <stdexcept>
-#include <vector>
-
-/* Nuestra:         Matlab:
-       0 1 2          0 3 6
-       3 4 5          1 4 7
-       6 7 8          2 5 8
-*/
-
 namespace tinyTools
 {
 template <typename T>
