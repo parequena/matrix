@@ -7,6 +7,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
+#include <limits>
 
 /* Nuestra:         Matlab:
        0 1 2          0 3 6
@@ -112,7 +113,7 @@ struct matrix
     // Operators.
     template <numerical L_T>
     friend auto operator<<(std::ostream& os, matrix<L_T> const& rhm) -> std::ostream&;
-    inline constexpr auto operator()(size_type r, size_type c) const -> const_reference { return op_parenthesis(*this, r, c); }
+    [[nodiscard]] inline constexpr auto operator()(size_type r, size_type c) const -> const_reference { return op_parenthesis(*this, r, c); }
     inline constexpr auto operator()(size_type r, size_type c) -> reference { return op_parenthesis(*this, r, c); }
 
     inline constexpr auto operator()(size_type row, size_type col, size_type height, size_type width) const -> matrix
@@ -147,16 +148,16 @@ struct matrix
     // inline constexpr auto operator()(std::string_view str) const -> matrix {}
 
     inline auto operator[](size_type idx) const -> const_reference { return op_sqBracket(*this, idx); }
-    inline auto operator[](size_type idx) -> reference { return op_sqBracket(*this, idx); }
+    [[nodiscard]] inline auto operator[](size_type idx) -> reference { return op_sqBracket(*this, idx); }
 
-    inline constexpr auto operator==(matrix const& rhm) const noexcept -> bool
+    [[nodiscard]] inline constexpr auto operator==(matrix const& rhm) const noexcept -> bool
     {
         for(size_type i{}; i < totalSize_; ++i) { if(data_[i] != rhm.data_[i]) { return false; } }
         return true;
     }
-    inline constexpr auto operator!=(matrix const& rhm) const noexcept -> bool { return !(operator==(rhm)); }
+    [[nodiscard]] inline constexpr auto operator!=(matrix const& rhm) const noexcept -> bool { return !(operator==(rhm)); }
 
-    inline auto operator<(matrix const& rhm) const -> matrix<bool>
+    [[nodiscard]] inline auto operator<(matrix const& rhm) const -> matrix<bool>
     {
         if(!sameSize(rhm)) { throw std::invalid_argument("Matrixes are not the same size!\n"); }
         std::vector<bool> data{};
@@ -165,7 +166,7 @@ struct matrix
         return matrix<bool>{ rows_, cols_, std::move(data) };
     }
 
-    inline auto operator<=(matrix const& rhm) const -> matrix<bool>
+    [[nodiscard]] inline auto operator<=(matrix const& rhm) const -> matrix<bool>
     {
         if(!sameSize(rhm)) { throw std::invalid_argument("Matrixes are not the same size!\n"); }
         std::vector<bool> data{};
@@ -174,7 +175,7 @@ struct matrix
         return matrix<bool>{ rows_, cols_, std::move(data) };
     }
 
-    inline auto operator>(matrix const& rhm) const -> matrix<bool>
+    [[nodiscard]] inline auto operator>(matrix const& rhm) const -> matrix<bool>
     {
         if(!sameSize(rhm)) { throw std::invalid_argument("Matrixes are not the same size!\n"); }
         std::vector<bool> data{};
@@ -183,7 +184,7 @@ struct matrix
         return matrix<bool>{ rows_, cols_, std::move(data) };
     }
 
-    inline auto operator>=(matrix const& rhm) const -> matrix<bool>
+    [[nodiscard]] inline auto operator>=(matrix const& rhm) const -> matrix<bool>
     {
         if(!sameSize(rhm)) { throw std::invalid_argument("Matrixes are not the same size!\n"); }
         std::vector<bool> data{};
@@ -193,18 +194,18 @@ struct matrix
     }
 
     inline constexpr auto operator+=(matrix const& rhm) noexcept -> matrix& { for(size_type i{}; i < totalSize_; ++i) { data_[i] += rhm.data_[i]; } return *this; }
-    friend constexpr auto operator+(matrix lhm, matrix const& rhm) noexcept -> matrix { lhm += rhm; return lhm; }
+    [[nodiscard]] friend constexpr auto operator+(matrix lhm, matrix const& rhm) noexcept -> matrix { lhm += rhm; return lhm; }
 
     inline constexpr auto operator+=(T const& scalar) noexcept -> matrix& { for(auto& d : data_) { d += scalar; } return *this; }
-    friend constexpr auto operator+(matrix lhm, T const& scalar) noexcept -> matrix { lhm += scalar; return lhm; }
+    [[nodiscard]] friend constexpr auto operator+(matrix lhm, T const& scalar) noexcept -> matrix { lhm += scalar; return lhm; }
 
     inline constexpr auto operator-=(matrix const& rhm) noexcept -> matrix& { for(size_type i{}; i < totalSize_; ++i) { data_[i] -= rhm.data_[i]; } return *this; }
-    friend constexpr auto operator-(matrix lhm, matrix const& rhm) noexcept -> matrix { lhm -= rhm; return lhm; }
+    [[nodiscard]] friend constexpr auto operator-(matrix lhm, matrix const& rhm) noexcept -> matrix { lhm -= rhm; return lhm; }
 
     inline constexpr auto operator-=(T const& scalar) noexcept -> matrix& { for(auto& d : data_) { d -= scalar; } return *this; }
-    friend constexpr auto operator-(matrix lhm, T const& scalar) noexcept -> matrix { lhm -= scalar; return lhm; }
+    [[nodiscard]] friend constexpr auto operator-(matrix lhm, T const& scalar) noexcept -> matrix { lhm -= scalar; return lhm; }
 
-    inline constexpr auto operator*(matrix const& rhm) const -> matrix
+    [[nodiscard]] inline constexpr auto operator*(matrix const& rhm) const -> matrix
     {
         if(cols_ != rhm.rows_) { throw std::invalid_argument("Matrixes left-matrix cols must be same size as right-matrix rows.\n"); }
         matrix ret{ rows_, rhm.cols_, 0 };
@@ -253,14 +254,7 @@ struct matrix
     [[nodiscard]] inline static constexpr auto zeros(size_type size) noexcept -> matrix { return zeros(size, size); }
     [[nodiscard]] inline static constexpr auto zeros(size_type rows, size_type cols) noexcept -> matrix { return matrix{ rows, cols, 0 }; }
     [[nodiscard]] inline static constexpr auto random(size_type size) noexcept -> matrix { return random(size, size); }
-    [[nodiscard]] inline static constexpr auto random(size_type rows, size_type cols) noexcept -> matrix
-    {
-        matrix ret{ rows, cols, 1 };
-        auto const totalSize = rows * cols;
-        for(size_type i{}; i < totalSize; ++i) { ret[i] = std::rand(); }
-        return ret;
-    }
-    [[nodiscard]] inline static constexpr auto random(size_type rows, size_type cols, T max) noexcept -> matrix
+    [[nodiscard]] inline static constexpr auto random(size_type rows, size_type cols, T max = std::numeric_limits<T>::max()) noexcept -> matrix
     {
         matrix ret{ rows, cols, 1 };
         auto const totalSize = rows * cols;
