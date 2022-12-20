@@ -160,10 +160,10 @@ TEST_F(TestMatrix, Op_parenthesis_submatrix)
   };
 
   auto const subMat = mat(1, 0, 2, 2);
-  compareVectors(subMat.getData(), {5, 6, 10, 11});
+  compareVectors(subMat.data(), {5, 6, 10, 11});
 
   auto const subMat2 = mat(2, 2, 3, 3);
-  compareVectors(subMat2.getData(), {12, 13, 14, 17, 18, 19, 22, 23, 24});
+  compareVectors(subMat2.data(), {12, 13, 14, 17, 18, 19, 22, 23, 24});
 
   EXPECT_ANY_THROW(mat(2, 3, 7, 8));
 }

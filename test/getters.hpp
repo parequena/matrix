@@ -6,7 +6,7 @@ TEST_F(TestMatrix, Get_Data)
 {
   std::vector<char> data{'P', 'a', 'b', 'l', 'o'};
   tinyTools::matrix<char> mat(1, 5, data);
-  auto const& priv_data = mat.getData();
+  auto const& priv_data = mat.data();
   compareVectors(data, priv_data);
 }
 

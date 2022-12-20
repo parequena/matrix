@@ -63,7 +63,7 @@ struct matrix
 
     // -----------------------------------------------------------------------------------------------------------------------------------------------------
     // Getters.
-    [[nodiscard]] inline auto getData() const noexcept -> container_type;
+    [[nodiscard]] inline auto data() const noexcept -> container_type;
     [[nodiscard]] inline constexpr auto rows() const noexcept -> size_type;
     [[nodiscard]] inline constexpr auto cols() const noexcept -> size_type;
     [[nodiscard]] inline constexpr auto totalSize() const noexcept -> size_type;

@@ -13,9 +13,9 @@ template <typename T> void compareVectors(std::vector<T> const& lhv, std::vector
   }
 }
 
-template <typename T> void compareMatrix(tinyTools::matrix<T> const& mat, std::vector<T> data) { compareVectors<T>(mat.getData(), data); }
+template <typename T> void compareMatrix(tinyTools::matrix<T> const& mat, std::vector<T> data) { compareVectors<T>(mat.data(), data); }
 
-template <typename T> void compare2Matrixes(tinyTools::matrix<T> const& lhm, tinyTools::matrix<T> const& rhm) { compareVectors<T>(lhm.getData(), rhm.getData()); }
+template <typename T> void compare2Matrixes(tinyTools::matrix<T> const& lhm, tinyTools::matrix<T> const& rhm) { compareVectors<T>(lhm.data(), rhm.data()); }
 
 
 #endif /* COMMON_HPP */
