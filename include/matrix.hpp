@@ -120,6 +120,8 @@ namespace tinyTools
         [[nodiscard]] inline constexpr auto rows() const noexcept -> size_type { return rows_; }
         [[nodiscard]] inline constexpr auto cols() const noexcept -> size_type { return cols_; }
         [[nodiscard]] inline constexpr auto totalSize() const noexcept -> size_type { return totalSize_; }
+        template <numerical L_T>
+        friend constexpr inline auto size(matrix<L_T> const &mat) noexcept -> std::tuple<std::size_t, std::size_t>;
 
         // -----------------------------------------------------------------------------------------------------------------------------------------------------
         // Operators.
@@ -396,12 +398,8 @@ namespace tinyTools
             }
         }
 
-        [[nodiscard]] inline static constexpr auto multiply(matrix const &lhm, matrix const &rhm) -> matrix
-        {
-            auto ret{lhm};
-            ret.multiply(rhm);
-            return ret;
-        }
+        template <numerical L_T>
+        friend constexpr auto multiply(matrix<L_T> const &lhm, matrix<L_T> const &rhm) -> matrix<L_T>;
 
         [[nodiscard]] inline constexpr auto sum(Direction dir) const -> matrix
         {
@@ -431,62 +429,11 @@ namespace tinyTools
             return ret;
         }
 
-        [[nodiscard]] static inline constexpr auto cat(Direction dir, matrix const &lhm, matrix const &rhm) -> matrix
-        {
-            // TODO: Not tested!
-            auto const lh_r = lhm.rows();
-            auto const lh_c = lhm.cols();
+        template <numerical L_T>
+        friend constexpr auto cat(Direction dir, matrix<L_T> const &lhm, matrix<L_T> const &rhm) -> matrix<L_T>;
 
-            auto const rh_r = rhm.rows();
-            auto const rh_c = lhm.cols();
-
-            if (dir == Direction::ROWS)
-            {
-                auto ret = matrix{lh_r + rh_r, lh_c};
-
-                for (std::size_t c{}; c < lh_c; ++c)
-                {                                        // For all columns.
-                    for (std::size_t r{}; r < lh_r; ++r) // Copy all rows from left hand matrix.
-                    {
-                        ret(r, c) = lhm(r, c);
-                    }
-
-                    for (std::size_t r{}; r < rh_r; ++r) // Copy all rows from right hand matrix.
-                    {
-                        ret(r + lh_r, c) = rhm(r, c);
-                    }
-                }
-
-                return ret;
-            }
-            else if (dir == Direction::COLUMNS)
-            {
-                auto ret = matrix{lh_r, lh_c + rh_c};
-
-                for (std::size_t r{}; r < lh_r; ++r)
-                {
-                    for (std::size_t c{}; c < lh_c; ++c)
-                        ret(r, c) = lhm(r, c);
-
-                    for (std::size_t c{}; c < rh_c; ++c)
-                        ret(r, c + lh_c) = rhm(r, c);
-                }
-
-                return ret;
-            }
-            else
-            {
-                std::cerr << "You can't provide NONE as Direction\n";
-                return {};
-            }
-        }
-
-        template <typename... args_t>
-        [[nodiscard]] static inline constexpr auto cat(Direction dir, matrix const &lhm, matrix const &rhm, args_t &&...args) -> matrix
-        {
-            // TODO: Not tested!
-            return cat(dir, cat(dir, lhm, rhm), std::forward<args_t>(args)...);
-        }
+        template <numerical L_T, typename... args_t>
+        friend constexpr auto cat(Direction dir, matrix<L_T> const &lhm, matrix<L_T> const &rhm, args_t &&...args) -> matrix<L_T>;
 
     private:
         inline explicit constexpr matrix() noexcept = default;
@@ -542,6 +489,83 @@ namespace tinyTools
         }
         return os;
     }
+
+    // -----------------------------------------------------------------------------------------------------------------------------------------------------
+    // Friend.
+    template <numerical L_T>
+    [[nodiscard]] constexpr inline auto size(matrix<L_T> const &mat) noexcept -> std::tuple<std::size_t, std::size_t>
+    {
+        return std::tuple{mat.rows_, mat.cols_};
+    }
+
+    template <numerical L_T>
+    [[nodiscard]] constexpr auto multiply(matrix<L_T> const &lhm, matrix<L_T> const &rhm) -> matrix<L_T>
+    {
+        auto ret{lhm};
+        ret.multiply(rhm);
+        return ret;
+    }
+
+    template <numerical L_T>
+    [[nodiscard]] constexpr auto cat(typename matrix<L_T>::Direction dir, matrix<L_T> const &lhm, matrix<L_T> const &rhm) -> matrix<L_T>
+    {
+        using Direction = typename matrix<L_T>::Direction;
+
+        // TODO: Not tested!
+        auto const lh_r = lhm.rows();
+        auto const lh_c = lhm.cols();
+
+        auto const rh_r = rhm.rows();
+        auto const rh_c = lhm.cols();
+
+        if (dir == Direction::ROWS)
+        {
+            auto ret = matrix{lh_r + rh_r, lh_c};
+
+            for (std::size_t c{}; c < lh_c; ++c)
+            {                                        // For all columns.
+                for (std::size_t r{}; r < lh_r; ++r) // Copy all rows from left hand matrix.
+                {
+                    ret(r, c) = lhm(r, c);
+                }
+
+                for (std::size_t r{}; r < rh_r; ++r) // Copy all rows from right hand matrix.
+                {
+                    ret(r + lh_r, c) = rhm(r, c);
+                }
+            }
+
+            return ret;
+        }
+        else if (dir == Direction::COLUMNS)
+        {
+            auto ret = matrix{lh_r, lh_c + rh_c};
+
+            for (std::size_t r{}; r < lh_r; ++r)
+            {
+                for (std::size_t c{}; c < lh_c; ++c)
+                    ret(r, c) = lhm(r, c);
+
+                for (std::size_t c{}; c < rh_c; ++c)
+                    ret(r, c + lh_c) = rhm(r, c);
+            }
+
+            return ret;
+        }
+        else
+        {
+            std::cerr << "You can't provide NONE as Direction\n";
+            return {};
+        }
+    }
+
+    template <numerical L_T, typename... args_t>
+    [[nodiscard]] constexpr auto cat(typename matrix<L_T>::Direction dir, matrix<L_T> const &lhm, matrix<L_T> const &rhm, args_t &&...args) -> matrix<L_T>
+    {
+        // TODO: Not tested!
+        return cat(dir, cat(dir, lhm, rhm), std::forward<args_t>(args)...);
+    }
+
 } // namespace tinyTools
 
 #endif /* MATRIX_HPP */

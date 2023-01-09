@@ -24,6 +24,7 @@ On this code I have been using some tecnologies just for fun:
 ### Interface
 
 ``` cpp
+// NOT UPDATED!
 namespace tinyTools
 {
 template <typename T>

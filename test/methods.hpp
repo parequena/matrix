@@ -13,10 +13,10 @@ TEST_F(TestMatrix, Method_getRow)
 {
   tinyTools::matrix<int> mat{2, 3, {1, 2, 3, 4, 5, 6}};
 
-  auto const& row0 = mat.getRow(0);
+  auto const &row0 = mat.getRow(0);
   compareVectors(row0.data(), {1, 2, 3});
 
-  auto const& row1 = mat.getRow(1);
+  auto const &row1 = mat.getRow(1);
   compareVectors(row1.data(), {4, 5, 6});
 }
 
@@ -24,13 +24,13 @@ TEST_F(TestMatrix, Method_getCol)
 {
   tinyTools::matrix<int> mat{2, 3, {1, 2, 3, 4, 5, 6}};
 
-  auto const& col0 = mat.getCol(0);
+  auto const &col0 = mat.getCol(0);
   compareVectors(col0.data(), {1, 4});
 
-  auto const& col1 = mat.getCol(1);
+  auto const &col1 = mat.getCol(1);
   compareVectors(col1.data(), {2, 5});
 
-  auto const& col2 = mat.getCol(2);
+  auto const &col2 = mat.getCol(2);
   compareVectors(col2.data(), {3, 6});
 }
 
@@ -101,7 +101,7 @@ TEST_F(TestMatrix, Method_multiply)
 
   auto const resolve = tinyTools::matrix<int>{2, 2, {5, 12, 21, 32}};
 
-  auto const matC = tinyTools::matrix<int>::multiply(matA, matB);
+  auto const matC = tinyTools::multiply(matA, matB);
   compare2Matrixes(matC, resolve);
 }
 
@@ -109,10 +109,10 @@ TEST_F(TestMatrix, Method_sum)
 {
   auto const matA = tinyTools::matrix<int>{2, 2, {1, 2, 3, 4}};
 
-  auto const sumC = matA.sum( tinyTools::matrix<int>::Direction::COLUMNS );
+  auto const sumC = matA.sum(tinyTools::matrix<int>::Direction::COLUMNS);
   compareMatrix(sumC, {4, 6});
 
-  auto const sumR = matA.sum( tinyTools::matrix<int>::Direction::ROWS );
+  auto const sumR = matA.sum(tinyTools::matrix<int>::Direction::ROWS);
   compareMatrix(sumR, {3, 7});
 }
 
