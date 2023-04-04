@@ -1,0 +1,82 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 25,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name" : "common_config",
+            "description" : "General settings that apply to all configurations.",
+            "hidden" : true,
+            "binaryDir" : "${sourceDir}/_out/build/${presetName}",
+            "installDir" : "${sourceDir}/_out/install/${presetName}"
+        },
+        {
+            "name" : "common_unix_config",
+            "description" : "General settings that apply to all Unix configurations.",
+            "inherits" : "common_config",
+            "hidden": true,
+            "cacheVariables": {
+                "GENERAL_COMPILER_WARNINGS" : "-Werror;-pedantic;-Wall;-Wextra;-Wextra-semi;-Wshadow;-Wnon-virtual-dtor;-Wold-style-cast;-Wcast-align;-Wunused;-Woverloaded-virtual;-Wpedantic;-Wconversion;-Wsign-conversion;-Wnull-dereference;-Wdouble-promotion;-Wformat=2;-Wimplicit-fallthrough;-Weffc++"
+           }
+        },
+        {
+            "name": "Gcc_Unix",
+            "description" : "Settings that apply to Gcc Unix configurations.",
+            "inherits" : "common_unix_config",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_C_COMPILER" : "gcc",
+                "CMAKE_CXX_COMPILER" : "g++",
+                "CMAKE_BUILD_TYPE" : "Debug",
+                "SPECIFIC_COMPILER_WARNINGS" : "-Wmisleading-indentation;-Wduplicated-cond;-Wduplicated-branches;-Wlogical-op;-Wuseless-cast"
+            }
+        },
+        {
+            "name": "Gcc_Unix_Debug",
+            "description" : "Settings that apply to Gcc Unix Debug configurations.",
+            "inherits" : "Gcc_Unix",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE" : "Debug"
+            }
+        },
+        {
+            "name": "Gcc_Unix_Release",
+            "description" : "Settings that apply to Gcc Unix Release configurations.",
+            "inherits" : "Gcc_Unix",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE" : "Release"
+            }
+        },
+        {
+            "name": "Clang_Unix",
+            "description" : "Settings that apply to Clang Unix configurations.",
+            "hidden": true,
+            "inherits" : "common_unix_config",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER" : "clang",
+                "CMAKE_CXX_COMPILER" : "clang++",
+                "CMAKE_BUILD_TYPE" : "Debug",
+                "SPECIFIC_COMPILER_WARNINGS" : "-Weverything;-Wno-c++98-compat"
+            }
+        },
+        {
+            "name": "Clang_Unix_Debug",
+            "description" : "Settings that apply to Clang Unix Debug configurations.",
+            "inherits" : "Clang_Unix",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE" : "Debug"
+            }
+        },
+        {
+            "name": "Clang_Unix_Release",
+            "description" : "Settings that apply to Clang Unix Release configurations.",
+            "inherits" : "Clang_Unix",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE" : "Release"
+            }
+        }
+    ]
+}
